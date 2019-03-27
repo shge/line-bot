@@ -1,2 +1,1 @@
-# line-bot
-LINE Bot
+# LINE Bot
