@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "builds": [{ "src": "*.py", "use": "@liudonghua123/now-flask", "config": { "maxLambdaSize": "50mb" } }],
+  "env": {
+    "ACCESS_TOKEN": "@access-token",
+    "CHANNEL_SECRET": "@channel-secret"
+  }
+}
