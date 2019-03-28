@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, abort, redirect
 from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
+from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = Flask(__name__)
@@ -28,6 +28,11 @@ def callback():
 
     try:
         handler.handle(body, signature)
+    except LineBotApiError as e:
+        print("LINE Messaging API Error: %s\n" % e.message)
+        for m in e.error.details:
+            print("  %s: %s" % (m.property, m.message))
+        print("\n")
     except InvalidSignatureError:
         print('Signature was in header, but invalid:' + request.remote_addr)
         abort(400)
