@@ -10,6 +10,12 @@ line_bot_api = LineBotApi(os.environ['ACCESS_TOKEN'])
 handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
 
 
+@app.route("/")
+def redirect_page():
+    return 'https://github.com/shge/line-bot'
+    # return redirect("https://github.com/shge/line-bot", code=303)
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -37,9 +43,9 @@ def handle_message(event):
 
 
 if __name__ == "__main__":
-    # app.run()
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run()
+    # port = int(os.getenv("PORT", 5000))
+    # app.run(host="0.0.0.0", port=port)
 
 # from http.server import BaseHTTPRequestHandler
 #
