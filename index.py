@@ -5,34 +5,33 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = Flask(__name__)
-
 line_bot_api = LineBotApi(os.environ['ACCESS_TOKEN'])
 handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
 
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 def redirect_page():
-    # return 'https://github.com/shge/line-bot'
     return redirect("https://github.com/shge/line-bot", code=303)
 
 
-@app.route("/callback", methods=['POST'])
+@app.route("/", methods=['POST'])
 def callback():
-    # get X-Line-Signature header value
-    signature = request.headers['X-Line-Signature']
+    try:
+        signature = request.headers['X-Line-Signature']
+    except KeyError:
+        print("No signature in header.")
+        abort(400)
 
-    # get request body as text
     body = request.get_data(as_text=True)
-    print(body)  #
-    # app.logger.info("Request body: " + body)
+    print("Request body: " + body)
 
-    # handle webhook body
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
+        print("Signature was in header, but invalid.")
         abort(400)
 
-    return 'OK'
+    return abort(200)
 
 
 @handler.add(MessageEvent, message=TextMessage)
