@@ -11,5 +11,6 @@
     { "src": "/.*", "dest": "/"}
   ],
   "regions": ["hnd1"],
-  "alias": ["shge-line-bot.now.sh"]
+  "alias": ["shge-line-bot.now.sh"],
+  "github": { "silent": true }
 }
