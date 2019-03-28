@@ -1,4 +1,4 @@
-import os
+# import os
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -6,8 +6,14 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = Flask(__name__)
 
-line_bot_api = LineBotApi(os.environ['ACCESS_TOKEN'])
-handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
+line_bot_api = LineBotApi('ACCESS_TOKEN')
+handler = WebhookHandler('CHANNEL_SECRET')
+
+
+@app.route("/")
+def redirect_page():
+    return 'https://github.com/shge/line-bot'
+    # return redirect("https://github.com/shge/line-bot", code=303)
 
 
 @app.route("/callback", methods=['POST'])
@@ -37,9 +43,9 @@ def handle_message(event):
 
 
 if __name__ == "__main__":
-    # app.run()
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run()
+    # port = int(os.getenv("PORT", 5000))
+    # app.run(host="0.0.0.0", port=port)
 
 # from http.server import BaseHTTPRequestHandler
 #
