@@ -10,5 +10,6 @@
   "routes": [
     { "src": "/.*", "dest": "/"}
   ],
-  "regions": ["hnd1"]
+  "regions": ["hnd1"],
+  "alias": ["line-bot.shge.now.sh"]
 }
