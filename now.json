@@ -11,5 +11,5 @@
     { "src": "/.*", "dest": "/"}
   ],
   "regions": ["hnd1"],
-  "alias": ["line-bot.shge.now.sh"]
+  "alias": ["shge-line-bot.now.sh"]
 }
