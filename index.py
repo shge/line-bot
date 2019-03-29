@@ -1,9 +1,11 @@
 import os
 import sys
-from flask import Flask, request, abort, redirect
-from linebot import LineBotApi, WebhookHandler, SourceUser
+
+from flask import Flask, abort, redirect, request
+from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import (MessageEvent, SourceUser, TextMessage,
+                            TextSendMessage)
 
 app = Flask(__name__)
 access_token = os.getenv('ACCESS_TOKEN', None)
@@ -64,11 +66,7 @@ def handle_message(event):
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage(text="Bot can't use profile API without user ID"))
-
-    # Procsss the message here
-    reply = text + '！'
-
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply)
-    )
+    else:
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text=text + '！')
+        )
