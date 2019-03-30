@@ -8,40 +8,74 @@ fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 logging.basicConfig(level=logging.DEBUG, format=fmt)
 
 
-def make_sentences(text, start='', max=300, min=0, tries=100):
-    if start == '':   # If start is specified
+# Toggle test_sentence_input
+test_sentence_input = markovify.Text.test_sentence_input  # Stash
+def disable_test_sentence_input():
+    def do_nothing(self, sentence):
+        return True
+    markovify.Text.test_sentence_input = do_nothing
+def enable_test_sentence_input():
+    markovify.Text.test_sentence_input = test_sentence_input
+
+
+def format_book(t):
+    t = t.replace('　', ' ')  # Full width spaces
+    t = re.sub(r'([。．！？…]+)', r'\1\n', t)  # \n after ！？
+    t = re.sub(r'\n +', '\n', t)  # Spaces
+    t = re.sub(r'([。．！？…])\n」', r'\1」 \n', t)  # \n before 」
+    t = re.sub(r'\n +', '\n', t)  # Spaces
+    t = re.sub(r'\n+', r'\n', t).rstrip('\n')  # Empty lines
+    t = re.sub(r'\n +', '\n', t)  # Spaces
+    # t = re.sub(r'。\n「', '。「\n「', t)  # Spaces
+    return t
+
+
+def make_sentences(text, start=None, max=300, min=1, tries=100):
+    if start is None:   # If start is specified
         for _ in range(tries):
-            sentence = text.make_sentence().replace(' ', '')
+            sentence = str(text.make_sentence()).replace(' ', '')
             if sentence and len(sentence) <= max and len(sentence) >= min:
                 return sentence
     else:  # If start is specified
         for _ in range(tries):
-            sentence = text.make_sentence_with_start(beginning=start).replace(' ', '')
+            sentence = str(text.make_sentence_with_start(beginning=start)).replace(' ', '')
             if sentence and len(sentence) <= max and len(sentence) >= min:
                 return sentence
 
 
-# Load file
-# text = open("input.txt", "r").read()
-# logger.info('File loaded')
+# json = open("model.json", "r").read()
+# text_model = markovify.Text.from_json(json)
 
 
-# Parse text using MeCab
+"""
+1. Load text -> Parse text using MeCab
+"""
 parsed_text = ''
-for line in open('input.txt', 'r'):
-    parsed_text += MeCab.Tagger('-Owakati').parse(line)
-parsed_text = parsed_text.rstrip('\n')
-parsed_text = re.sub('[。．](.)', '。\n\1', parsed_text)
-# logger.info('Text parsed')
+for line in open('input.txt', 'r'):    # To retain \n for e.g. LINE messages
+    parsed_text = parsed_text + '' + MeCab.Tagger('-Owakati').parse(line)
 
 
-# Build model
-# text_model = markovify.Text(parsed_text, state_size=2)
-text_model = markovify.NewlineText(parsed_text, state_size=2)
+"""
+2. Format text
+"""
+formatted_text = format_book(parsed_text)
+logger.info('Text formatted')
+
+
+"""
+3. Build model
+"""
+text_model = markovify.NewlineText(formatted_text, state_size=2)
 logger.info('Text model built')
 
+# parsed_text = parsed_text.replace('\n', '')
+# disable_test_sentence_input()
+# text_model = markovify.Text(parsed_text, state_size=2)
+# enable_test_sentence_input()
 
-# Output (max, min)
-for _ in range(10):
-    sentence = make_sentences(text_model, 'メロス', max=30, min=5)
+"""
+4. Make sentences
+"""
+for _ in range(5):
+    sentence = make_sentences(text_model, start='メロス', max=300, min=30)
     logger.info(sentence)
