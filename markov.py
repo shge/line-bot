@@ -95,6 +95,11 @@ logger.info('Built text model.')
 """
 3. Make sentences
 """
-for _ in range(10):
-    sentence = make_sentences(text_model, start='メロス', max=150, min=50)
-    logger.info(sentence)
+try:
+    for _ in range(10):
+        sentence = make_sentences(text_model, start='', max=150, min=20)
+        logger.info(sentence)
+except KeyError:
+    logger.error('KeyError: No sentence starts with "start".')
+    logger.info('If you set format=True, please change "start" to another word.')
+    logger.info('If you set format=False, you cannot specify "start".')
