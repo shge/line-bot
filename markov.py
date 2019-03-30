@@ -17,6 +17,17 @@ def disable_test_sentence_input():
 def enable_test_sentence_input():
     markovify.Text.test_sentence_input = test_sentence_input
 
+def parse_line(t):
+    t = t.replace('[Sticker]', '').replace('[Photo]', '').replace('[Voice message]', '')
+    t = re.sub(r'\[LINE\] Chat history .+$', '', t, flags=re.MULTILINE)  # 1st line
+    t = re.sub(r'^Saved on: .+$', '', t, flags=re.MULTILINE)  # 2nd line
+    t = re.sub(r'^..../../.. ...$', '', t, flags=re.MULTILINE)  # Date
+    t = re.sub(r'^..:..\t.+\t', '', t, flags=re.MULTILINE)  # Date and time
+    t = re.sub(r'^http.+', '', t, flags=re.MULTILINE)  # URL
+    t = re.sub(r'^..:..\t.+\.$', '', t, flags=re.MULTILINE)  # Messages
+    t = re.sub(r'^☎ .+', '', t, flags=re.MULTILINE)  # ☎
+    t = re.sub(r'\n+', r'\n', t).strip('\n')  # Empty lines
+    return t
 
 def format_text(t):
     t = t.replace('　', ' ')  # Full width spaces
@@ -30,15 +41,15 @@ def format_text(t):
 
 def build_model(text, format=True, state_size=2):
     """
-    format=True: Fast
-    format=False: Funny(?)
+    format=True: Fast. Recommended for LINE.
+    format=False: Slow. Funnier(?)
     """
     if format is True:
         logger.info('Format: True')
         return markovify.NewlineText(format_text(text), state_size)
     else:
         logger.info('Format: False')
-        text = text.replace('\n', '')
+        text = text.replace('\n', ' ')
         disable_test_sentence_input()
         text = markovify.Text(text, state_size)
         enable_test_sentence_input()
@@ -64,16 +75,22 @@ def make_sentences(text, start=None, max=300, min=1, tries=100):
 """
 1. Load text -> Parse text using MeCab
 """
+file = open('input.txt', 'r').read()
+
+# file = parse_line(file)  # LINE Parse
+# logger.info('Parsed text with LINE parser.')
+
 parsed_text = ''
-for line in open('input.txt', 'r'):    # To retain \n for e.g. LINE messages
-    parsed_text = parsed_text + '' + MeCab.Tagger('-Owakati').parse(line)
+for line in file.split("\n"):    # To retain \n for e.g. LINE messages
+    parsed_text = parsed_text + MeCab.Tagger('-Owakati').parse(line)
+logger.info('Parsed text.')
 
 
 """
 2. Build model
 """
-text_model = build_model(parsed_text, format=False, state_size=3)
-
+text_model = build_model(parsed_text, format=False, state_size=2)
+logger.info('Built text model.')
 
 """
 3. Make sentences
