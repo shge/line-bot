@@ -18,7 +18,7 @@ def enable_test_sentence_input():
     markovify.Text.test_sentence_input = test_sentence_input
 
 
-def format_book(t):
+def format_text(t):
     t = t.replace('　', ' ')  # Full width spaces
     t = re.sub(r'([。．！？…]+)', r'\1\n', t)  # \n after ！？
     t = re.sub(r'\n +', '\n', t)  # Spaces
@@ -26,12 +26,26 @@ def format_book(t):
     t = re.sub(r'\n +', '\n', t)  # Spaces
     t = re.sub(r'\n+', r'\n', t).rstrip('\n')  # Empty lines
     t = re.sub(r'\n +', '\n', t)  # Spaces
-    # t = re.sub(r'。\n「', '。「\n「', t)  # Spaces
     return t
 
+def build_model(text, format=True, state_size=2):
+    """
+    format=True: Fast
+    format=False: Funny(?)
+    """
+    if format is True:
+        logger.info('Format: True')
+        return markovify.NewlineText(format_text(text), state_size)
+    else:
+        logger.info('Format: False')
+        text = text.replace('\n', '')
+        disable_test_sentence_input()
+        text = markovify.Text(text, state_size)
+        enable_test_sentence_input()
+        return text
 
 def make_sentences(text, start=None, max=300, min=1, tries=100):
-    if start is None:   # If start is specified
+    if start is (None or ''):   # If start is not specified
         for _ in range(tries):
             sentence = str(text.make_sentence()).replace(' ', '')
             if sentence and len(sentence) <= max and len(sentence) >= min:
@@ -56,26 +70,14 @@ for line in open('input.txt', 'r'):    # To retain \n for e.g. LINE messages
 
 
 """
-2. Format text
+2. Build model
 """
-formatted_text = format_book(parsed_text)
-logger.info('Text formatted')
+text_model = build_model(parsed_text, format=False, state_size=3)
 
 
 """
-3. Build model
+3. Make sentences
 """
-text_model = markovify.NewlineText(formatted_text, state_size=2)
-logger.info('Text model built')
-
-# parsed_text = parsed_text.replace('\n', '')
-# disable_test_sentence_input()
-# text_model = markovify.Text(parsed_text, state_size=2)
-# enable_test_sentence_input()
-
-"""
-4. Make sentences
-"""
-for _ in range(5):
-    sentence = make_sentences(text_model, start='メロス', max=300, min=30)
+for _ in range(10):
+    sentence = make_sentences(text_model, start='メロス', max=150, min=50)
     logger.info(sentence)
