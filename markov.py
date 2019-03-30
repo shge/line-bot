@@ -8,17 +8,17 @@ fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 logging.basicConfig(level=logging.DEBUG, format=fmt)
 
 
-def make_short_sentences(text, max=300, min=0, tries=100):
-    for _ in range(tries):
-        sentence = text.make_sentence().replace(' ', '')
-        if sentence and len(sentence) <= max and len(sentence) >= min:
-            return sentence
-
-def make_short_sentences_with_start(text, beginning, max=300, min=0, tries=100):
-    for _ in range(tries):
-        sentence = text.make_sentence_with_start(beginning).replace(' ', '')
-        if sentence and len(sentence) <= max and len(sentence) >= min:
-            return sentence
+def make_sentences(text, start='', max=300, min=0, tries=100):
+    if start == '':   # If start is specified
+        for _ in range(tries):
+            sentence = text.make_sentence().replace(' ', '')
+            if sentence and len(sentence) <= max and len(sentence) >= min:
+                return sentence
+    else:  # If start is specified
+        for _ in range(tries):
+            sentence = text.make_sentence_with_start(beginning=start).replace(' ', '')
+            if sentence and len(sentence) <= max and len(sentence) >= min:
+                return sentence
 
 
 # Load file
@@ -43,6 +43,5 @@ logger.info('Text model built')
 
 # Output (max, min)
 for _ in range(10):
-    # sentence = make_short_sentences(text_model, max=100, min=50)
-    sentence = make_short_sentences_with_start(text_model, 'メロス', max=30, min=5)
+    sentence = make_sentences(text_model, 'メロス', max=30, min=5)
     logger.info(sentence)
