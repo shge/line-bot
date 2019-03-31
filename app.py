@@ -62,6 +62,7 @@ def callback():
         abort(400)
 
     body = request.get_data(as_text=True)
+    print('--------------------------------------------')
     print('Request body: ' + body)
 
     try:
@@ -99,130 +100,138 @@ def handle_message(event):
 
     text = event.message.text
 
-    if text == 'profile':
-        if isinstance(event.source, SourceUser):
-            profile = line_bot_api.get_profile(event.source.user_id)
-            line_bot_api.reply_message(
-                event.reply_token, [
-                    TextSendMessage(text='Display name: ' + str(profile.display_name)),
-                    TextSendMessage(text='Status message: ' + str(profile.status_message)),
-                    TextSendMessage(text='User ID: ' + profile.user_id)
-                ]
-            )
-        else:
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text="Bot can't use profile API without user ID"))
+    """
+    For limited users
+    """
+    allowed_list = ['']
 
-    elif text == '@bye':
+    if (event.source.user_id or event.source.group_id or event.source.room_id) in allowed_list:
+
+        print('Source in allowed_list: TRUE')
+
+        if text == '.melos':
+            markov_reply(event, 'data/melos.json', 'メロス')
+        elif text == '.ningen':
+            markov_reply(event, 'data/ningen.json', '')
+        elif text == '.chumon':
+            markov_reply(event, 'data/chumon.json', '')
+        elif text == '.rasho':
+            markov_reply(event, 'data/rasho.json', '')
+        elif text == '.kokoro':
+            markov_reply(event, 'data/kokoro.json', '')
+        elif text == '.gon':
+            markov_reply(event, 'data/gon.json', '')
+        elif text == '.emil':
+            markov_reply(event, 'data/emil.json', '')
+
+        elif text == '.profile':
+            if isinstance(event.source, SourceUser):
+                profile = line_bot_api.get_profile(event.source.user_id)
+                line_bot_api.reply_message(
+                    event.reply_token, [
+                        TextSendMessage(text='Display name: ' + str(profile.display_name)),
+                        TextSendMessage(text='Status message: ' + str(profile.status_message)),
+                        TextSendMessage(text='User ID: ' + profile.user_id)
+                    ]
+                )
+            else:
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text="Can't get profile info."))
+
+    else:
+        print('Source in allowed_list: FALSE')
+
+
+    """
+    For everyone
+    """
+    if text == '@bye':
         if isinstance(event.source, SourceGroup):
             line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text='Leaving group'))
+                event.reply_token, TextSendMessage(text='Bye!'))
             line_bot_api.leave_group(event.source.group_id)
         elif isinstance(event.source, SourceRoom):
             line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text='Leaving room'))
+                event.reply_token, TextSendMessage(text='Bye!'))
             line_bot_api.leave_room(event.source.room_id)
         else:
             line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text="Bot can't leave from 1:1 chat"))
+                event.reply_token, TextSendMessage(text="Block me if you want to."))
 
-    elif text == 'image':
-        url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LINE_logo.svg/1024px-LINE_logo.svg.png'
-        app.logger.info("url=" + url)
-        line_bot_api.reply_message(
-            event.reply_token,
-            ImageSendMessage(url, url)
-        )
+    # elif text == 'image':
+    #     url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LINE_logo.svg/1024px-LINE_logo.svg.png'
+    #     app.logger.info("url=" + url)
+    #     line_bot_api.reply_message(
+    #         event.reply_token,
+    #         ImageSendMessage(url, url)
+    #     )
 
-    elif text == 'confirm':
-        confirm_template = ConfirmTemplate(text='Do it?', actions=[
-            MessageAction(label='Yes', text='Yes!'),
-            MessageAction(label='No', text='No!'),
-        ])
-        template_message = TemplateSendMessage(
-            alt_text='Confirm alt text', template=confirm_template)
-        line_bot_api.reply_message(event.reply_token, template_message)
+    # elif text == 'confirm':
+    #     confirm_template = ConfirmTemplate(text='Do it?', actions=[
+    #         MessageAction(label='Yes', text='Yes!'),
+    #         MessageAction(label='No', text='No!'),
+    #     ])
+    #     template_message = TemplateSendMessage(
+    #         alt_text='Confirm alt text', template=confirm_template)
+    #     line_bot_api.reply_message(event.reply_token, template_message)
+    #
+    # elif text == 'buttons':
+    #     buttons_template = ButtonsTemplate(
+    #         title='My buttons sample', text='Hello, my buttons', actions=[
+    #             URIAction(label='Go to line.me', uri='https://line.me'),
+    #             PostbackAction(label='ping', data='ping'),
+    #             PostbackAction(label='ping with text', data='ping', text='ping'),
+    #             MessageAction(label='Translate Rice', text='米')
+    #         ])
+    #     template_message = TemplateSendMessage(
+    #         alt_text='Buttons alt text', template=buttons_template)
+    #     line_bot_api.reply_message(event.reply_token, template_message)
+    #
+    # elif text == 'carousel':
+    #     carousel_template = CarouselTemplate(columns=[
+    #         CarouselColumn(text='hoge1', title='fuga1', actions=[
+    #             URIAction(label='Go to line.me', uri='https://line.me'),
+    #             PostbackAction(label='ping', data='ping')
+    #         ]),
+    #         CarouselColumn(text='hoge2', title='fuga2', actions=[
+    #             PostbackAction(label='ping with text', data='ping', text='ping'),
+    #             MessageAction(label='Translate Rice', text='米')
+    #         ]),
+    #     ])
+    #     template_message = TemplateSendMessage(
+    #         alt_text='Carousel alt text', template=carousel_template)
+    #     line_bot_api.reply_message(event.reply_token, template_message)
+    #
+    # elif text == 'image_carousel':
+    #     image_carousel_template = ImageCarouselTemplate(columns=[
+    #         ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
+    #                             action=DatetimePickerAction(label='datetime',
+    #                                                         data='datetime_postback',
+    #                                                         mode='datetime')),
+    #         ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
+    #                             action=DatetimePickerAction(label='date',
+    #                                                         data='date_postback',
+    #                                                         mode='date'))
+    #     ])
+    #     template_message = TemplateSendMessage(
+    #         alt_text='ImageCarousel alt text', template=image_carousel_template)
+    #     line_bot_api.reply_message(event.reply_token, template_message)
 
-    elif text == 'buttons':
-        buttons_template = ButtonsTemplate(
-            title='My buttons sample', text='Hello, my buttons', actions=[
-                URIAction(label='Go to line.me', uri='https://line.me'),
-                PostbackAction(label='ping', data='ping'),
-                PostbackAction(label='ping with text', data='ping', text='ping'),
-                MessageAction(label='Translate Rice', text='米')
-            ])
-        template_message = TemplateSendMessage(
-            alt_text='Buttons alt text', template=buttons_template)
-        line_bot_api.reply_message(event.reply_token, template_message)
-
-    elif text == 'carousel':
-        carousel_template = CarouselTemplate(columns=[
-            CarouselColumn(text='hoge1', title='fuga1', actions=[
-                URIAction(label='Go to line.me', uri='https://line.me'),
-                PostbackAction(label='ping', data='ping')
-            ]),
-            CarouselColumn(text='hoge2', title='fuga2', actions=[
-                PostbackAction(label='ping with text', data='ping', text='ping'),
-                MessageAction(label='Translate Rice', text='米')
-            ]),
-        ])
-        template_message = TemplateSendMessage(
-            alt_text='Carousel alt text', template=carousel_template)
-        line_bot_api.reply_message(event.reply_token, template_message)
-
-    elif text == 'image_carousel':
-        image_carousel_template = ImageCarouselTemplate(columns=[
-            ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
-                                action=DatetimePickerAction(label='datetime',
-                                                            data='datetime_postback',
-                                                            mode='datetime')),
-            ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
-                                action=DatetimePickerAction(label='date',
-                                                            data='date_postback',
-                                                            mode='date'))
-        ])
-        template_message = TemplateSendMessage(
-            alt_text='ImageCarousel alt text', template=image_carousel_template)
-        line_bot_api.reply_message(event.reply_token, template_message)
-
-    elif text == 'quick_reply':
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(
-                text='Quick reply',
-                quick_reply=QuickReply(
-                    items=[
-                        QuickReplyButton(
-                            action=PostbackAction(label="label1", data="data1")
-                        ),
-                        QuickReplyButton(
-                            action=MessageAction(label="label2", text="text2")
-                        ),
-                        QuickReplyButton(
-                            action=DatetimePickerAction(label="label3",
-                                                        data="data3",
-                                                        mode="date")
-                        ),
-                        QuickReplyButton(
-                            action=CameraAction(label="label4")
-                        ),
-                        QuickReplyButton(
-                            action=CameraRollAction(label="label5")
-                        ),
-                        QuickReplyButton(
-                            action=LocationAction(label="label6")
-                        ),
-                    ])))
-
-    elif text == '.melos':
-        markov_reply(event, 'melos.json', 'メロス')
-    elif text == '.ningen':
-        markov_reply(event, 'ningen.json', '')
-    elif text == '.chumon':
-        markov_reply(event, 'chumon.json', '')
-
+    # elif text == 'quick_reply':
+    #     line_bot_api.reply_message(
+    #         event.reply_token,
+    #         TextSendMessage(
+    #             text='Quick reply',
+    #             quick_reply=QuickReply(
+    #                 items=[
+    #                     QuickReplyButton( action=PostbackAction(label="label1", data="data1") ),
+    #                     QuickReplyButton( action=MessageAction(label="label2", text="text2") ),
+    #                     QuickReplyButton( action=DatetimePickerAction(label="label3", data="data3", mode="date") ),
+    #                     QuickReplyButton( action=CameraAction(label="label4") ),
+    #                     QuickReplyButton( action=CameraRollAction(label="label5") ),
+    #                     QuickReplyButton( action=LocationAction(label="label6") ),
+    #                 ])))
 
     else:
         line_bot_api.reply_message(
@@ -230,44 +239,44 @@ def handle_message(event):
         )
 
 
-@handler.add(MessageEvent, message=StickerMessage)
-def handle_sticker_message(event):
-    available_sticker_packages = [1, 2, 3, 4, 11537, 11538, 11539]
-    if int(event.message.package_id) in available_sticker_packages:
-        line_bot_api.reply_message(
-            event.reply_token,
-            StickerSendMessage(
-                package_id=event.message.package_id,
-                sticker_id=event.message.sticker_id
-            )
-        )
-    else:
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text="I don't have that sticker. I'm jealous!")
-        )
+# @handler.add(MessageEvent, message=StickerMessage)
+# def handle_sticker_message(event):
+#     available_sticker_packages = [1, 2, 3, 4, 11537, 11538, 11539]
+#     if int(event.message.package_id) in available_sticker_packages:
+#         line_bot_api.reply_message(
+#             event.reply_token,
+#             StickerSendMessage(
+#                 package_id=event.message.package_id,
+#                 sticker_id=event.message.sticker_id
+#             )
+#         )
+#     else:
+#         line_bot_api.reply_message(
+#             event.reply_token, TextSendMessage(text="I don't have that sticker. I'm jealous!")
+#         )
 
 
-@handler.add(MessageEvent, message=LocationMessage)
-def handle_location_message(event):
-    line_bot_api.reply_message(
-        event.reply_token,
-        LocationSendMessage(
-            title='Location', address=event.message.address,
-            latitude=event.message.latitude, longitude=event.message.longitude
-        )
-    )
+# @handler.add(MessageEvent, message=LocationMessage)
+# def handle_location_message(event):
+#     line_bot_api.reply_message(
+#         event.reply_token,
+#         LocationSendMessage(
+#             title='Location', address=event.message.address,
+#             latitude=event.message.latitude, longitude=event.message.longitude
+#         )
+#     )
 
 
-@handler.add(MessageEvent, message=(ImageMessage, VideoMessage, AudioMessage))
-def handle_content_message(event):
-    if isinstance(event.message, ImageMessage):
-        ext = 'jpg'
-    elif isinstance(event.message, VideoMessage):
-        ext = 'mp4'
-    elif isinstance(event.message, AudioMessage):
-        ext = 'm4a'
-    else:
-        return
+# @handler.add(MessageEvent, message=(ImageMessage, VideoMessage, AudioMessage))
+# def handle_content_message(event):
+#     if isinstance(event.message, ImageMessage):
+#         ext = 'jpg'
+#     elif isinstance(event.message, VideoMessage):
+#         ext = 'mp4'
+#     elif isinstance(event.message, AudioMessage):
+#         ext = 'm4a'
+#     else:
+#         return
 
     # message_content = line_bot_api.get_message_content(event.message.id)
     # with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
@@ -279,16 +288,16 @@ def handle_content_message(event):
     # dist_name = os.path.basename(dist_path)
     # os.rename(tempfile_path, dist_path)
 
-    line_bot_api.reply_message(
-        event.reply_token, [
-            TextSendMessage(text='Received ' + ext)
-            # TextSendMessage(text='Saved content.'),
-            # TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))
-        ])
+    # line_bot_api.reply_message(
+    #     event.reply_token, [
+    #         TextSendMessage(text='Received ' + ext)
+    #         # TextSendMessage(text='Saved content.'),
+    #         # TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))
+    #     ])
 
 
-@handler.add(MessageEvent, message=FileMessage)
-def handle_file_message(event):
+# @handler.add(MessageEvent, message=FileMessage)
+# def handle_file_message(event):
     # message_content = line_bot_api.get_message_content(event.message.id)
     # with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix='file-', delete=False) as tf:
     #     for chunk in message_content.iter_content():
@@ -299,12 +308,12 @@ def handle_file_message(event):
     # dist_name = os.path.basename(dist_path)
     # os.rename(tempfile_path, dist_path)
 
-    line_bot_api.reply_message(
-        event.reply_token, [
-            TextSendMessage(text='Received file'),
-            # TextSendMessage(text='Saved file.'),
-            # TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))
-        ])
+    # line_bot_api.reply_message(
+    #     event.reply_token, [
+    #         TextSendMessage(text='Received file'),
+    #         # TextSendMessage(text='Saved file.'),
+    #         # TextSendMessage(text=request.host_url + os.path.join('static', 'tmp', dist_name))
+    #     ])
 
 
 @handler.add(FollowEvent)
