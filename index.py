@@ -1,5 +1,7 @@
 import os
 import sys
+import markovify
+import markov
 
 from flask import Flask, abort, redirect, request
 from linebot import LineBotApi, WebhookHandler
@@ -196,6 +198,20 @@ def handle_message(event):
                             action=LocationAction(label="label6")
                         ),
                     ])))
+
+    elif text == '.melos':
+
+        # Load from JSON
+        json = open('melos.json').read()
+        text_model = markovify.Text.from_json(json)
+        try:
+            sentence = markov.make_sentences(text_model, start='', max=150, min=20)
+        except KeyError:
+            sentence = 'Error'
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text=sentence)
+        )
+
 
     else:
         line_bot_api.reply_message(
