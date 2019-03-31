@@ -1,4 +1,5 @@
 __pycache__
 .magicindex.json
-input.txt
-test.py
+*.txt
+test*.py
+*.json

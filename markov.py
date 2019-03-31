@@ -18,7 +18,7 @@ def enable_test_sentence_input():
     markovify.Text.test_sentence_input = test_sentence_input
 
 def parse_line(t):
-    t = t.replace('[Sticker]', '').replace('[Photo]', '').replace('[Voice message]', '')
+    t = t.replace('[Sticker]', '').replace('[Photo]', '').replace('[Voice message]', '').replace('[File]', '')
     t = re.sub(r'\[LINE\] Chat history .+$', '', t, flags=re.MULTILINE)  # 1st line
     t = re.sub(r'^Saved on: .+$', '', t, flags=re.MULTILINE)  # 2nd line
     t = re.sub(r'^..../../.. ...$', '', t, flags=re.MULTILINE)  # Date
@@ -38,6 +38,18 @@ def format_text(t):
     t = re.sub(r'\n+', r'\n', t).rstrip('\n')  # Empty lines
     t = re.sub(r'\n +', '\n', t)  # Spaces
     return t
+
+def parse_text(filepath, is_line_messages=False):
+    file = open(filepath, 'r').read()
+
+    if is_line_messages is True:
+        file = parse_line(file)
+        logger.info('Parsed text with LINE parser.')
+
+    parsed_text = ''
+    for line in file.split("\n"):    # To retain \n for e.g. LINE messages
+        parsed_text = parsed_text + MeCab.Tagger('-Owakati').parse(line)
+    return parsed_text
 
 def build_model(text, format=True, state_size=2):
     """
@@ -75,22 +87,22 @@ def make_sentences(text, start=None, max=300, min=1, tries=100):
 """
 1. Load text -> Parse text using MeCab
 """
-file = open('input.txt', 'r').read()
-
-# file = parse_line(file)  # LINE Parse
-# logger.info('Parsed text with LINE parser.')
-
-parsed_text = ''
-for line in file.split("\n"):    # To retain \n for e.g. LINE messages
-    parsed_text = parsed_text + MeCab.Tagger('-Owakati').parse(line)
+parsed_text = parse_text('melos.txt', is_line_messages=False)
 logger.info('Parsed text.')
-
 
 """
 2. Build model
 """
-text_model = build_model(parsed_text, format=False, state_size=2)
+text_model = build_model(parsed_text, format=True, state_size=2)
 logger.info('Built text model.')
+
+json = text_model.to_json()
+open('melos.json', 'w').write(json)
+
+# Load from JSON
+# json = open('input.json').read()
+# text_model = markovify.Text.from_json(json)
+
 
 """
 3. Make sentences
