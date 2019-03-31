@@ -29,13 +29,13 @@ if access_token is None or channel_secret is None:
 line_bot_api = LineBotApi(access_token)
 handler = WebhookHandler(channel_secret)
 
-def markov_reply(event, json, start=''):
+def markov_reply(event, json, start='', max=70, min=25):
     json = open(json).read()
     text_model = markovify.Text.from_json(json)
     sentences = []
     for _ in range(3):
         try:
-            sentences += [markov.make_sentences(text_model, start=start, max=70, min=20)]
+            sentences += [markov.make_sentences(text_model, start=start, max=max, min=min)]
         except KeyError:
             sentences += ['Error']
     print(sentences)

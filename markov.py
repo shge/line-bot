@@ -17,7 +17,7 @@ def enable_test_sentence_input():
     markovify.Text.test_sentence_input = test_sentence_input
 
 def parse_line(t):
-    t = t.replace('[Sticker]', '').replace('[Photo]', '').replace('[Voice message]', '').replace('[File]', '')
+    t = t.replace('[Sticker]', '').replace('[Photo]', '').replace('[Voice message]', '').replace('[File]', '').replace('[Video]', '')
     t = re.sub(r'\[LINE\] Chat history .+$', '', t, flags=re.MULTILINE)  # 1st line
     t = re.sub(r'^Saved on: .+$', '', t, flags=re.MULTILINE)  # 2nd line
     t = re.sub(r'^..../../.. ...$', '', t, flags=re.MULTILINE)  # Date
