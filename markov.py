@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 logging.basicConfig(level=logging.DEBUG, format=fmt)
 
-
 # Toggle test_sentence_input
 test_sentence_input = markovify.Text.test_sentence_input  # Stash
 def disable_test_sentence_input():
@@ -31,7 +30,8 @@ def parse_line(t):
 
 def format_text(t):
     t = t.replace('　', ' ')  # Full width spaces
-    t = re.sub(r'([。．！？…]+)', r'\1\n', t)  # \n after ！？
+    # t = re.sub(r'([。．！？…]+)', r'\1\n', t)  # \n after ！？
+    t = re.sub(r'(.+。) (.+。)', r'\1 \2\n', t)
     t = re.sub(r'\n +', '\n', t)  # Spaces
     t = re.sub(r'([。．！？…])\n」', r'\1」 \n', t)  # \n before 」
     t = re.sub(r'\n +', '\n', t)  # Spaces
@@ -61,7 +61,7 @@ def build_model(text, format=True, state_size=2):
         return markovify.NewlineText(format_text(text), state_size)
     else:
         logger.info('Format: False')
-        text = text.replace('\n', ' ')
+        # text = text.replace('\n', ' ')
         disable_test_sentence_input()
         text = markovify.Text(text, state_size)
         enable_test_sentence_input()
@@ -82,36 +82,3 @@ def make_sentences(text, start=None, max=300, min=1, tries=100):
 
 # json = open("model.json", "r").read()
 # text_model = markovify.Text.from_json(json)
-
-
-"""
-1. Load text -> Parse text using MeCab
-"""
-parsed_text = parse_text('melos.txt', is_line_messages=False)
-logger.info('Parsed text.')
-
-"""
-2. Build model
-"""
-text_model = build_model(parsed_text, format=True, state_size=2)
-logger.info('Built text model.')
-
-json = text_model.to_json()
-open('melos.json', 'w').write(json)
-
-# Load from JSON
-# json = open('input.json').read()
-# text_model = markovify.Text.from_json(json)
-
-
-"""
-3. Make sentences
-"""
-try:
-    for _ in range(10):
-        sentence = make_sentences(text_model, start='', max=150, min=20)
-        logger.info(sentence)
-except KeyError:
-    logger.error('KeyError: No sentence starts with "start".')
-    logger.info('If you set format=True, please change "start" to another word.')
-    logger.info('If you set format=False, you cannot specify "start".')
