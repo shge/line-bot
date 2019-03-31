@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.py", "use": "@sisp/python-wsgi", "config": { "maxLambdaSize": "15mb" } }
+    { "src": "app.py", "use": "@sisp/python-wsgi", "config": { "maxLambdaSize": "15mb" } }
   ],
   "env": {
     "ACCESS_TOKEN": "@access-token",

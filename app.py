@@ -29,6 +29,23 @@ if access_token is None or channel_secret is None:
 line_bot_api = LineBotApi(access_token)
 handler = WebhookHandler(channel_secret)
 
+def markov_reply(event, json, start=''):
+    json = open(json).read()
+    text_model = markovify.Text.from_json(json)
+    sentences = []
+    for _ in range(3):
+        try:
+            sentences += [markov.make_sentences(text_model, start=start, max=70, min=20)]
+        except KeyError:
+            sentences += ['Error']
+    print(sentences)
+    line_bot_api.reply_message(
+        event.reply_token, [TextSendMessage(text=sentences[0]),
+                            TextSendMessage(text=sentences[1]),
+                            TextSendMessage(text=sentences[2])]
+    )
+
+
 
 @app.route('/', methods=['GET'])
 def redirect_page():
@@ -200,17 +217,11 @@ def handle_message(event):
                     ])))
 
     elif text == '.melos':
-
-        # Load from JSON
-        json = open('melos.json').read()
-        text_model = markovify.Text.from_json(json)
-        try:
-            sentence = markov.make_sentences(text_model, start='', max=150, min=20)
-        except KeyError:
-            sentence = 'Error'
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text=sentence)
-        )
+        markov_reply(event, 'melos.json', 'メロス')
+    elif text == '.ningen':
+        markov_reply(event, 'ningen.json', '')
+    elif text == '.chumon':
+        markov_reply(event, 'chumon.json', '')
 
 
     else:
